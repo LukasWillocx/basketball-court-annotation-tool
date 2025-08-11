@@ -617,13 +617,14 @@ $(document).ready(function() {
   
   function drawElement(element) {
     ctx.save();
-    
+  
     // Calculate responsive sizes
     var scale = currentCourtConfig.canvasWidth / 1200; // Base scale
     var playerRadius = Math.max(12, 18 * scale);
     var fontSize = Math.max(16, 24 * scale);
     var crossSize = Math.max(6, 8 * scale);
     var triangleSize = Math.max(8, 10 * scale);
+    var ballSize = Math.max(15, 20 * scale); // Add ball size
     
     if(element.type === 'player') {
       // Draw player with colored circle and number
@@ -763,7 +764,13 @@ $(document).ready(function() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(element.number.toString(), element.x, element.y);
-    }
+    } else if(element.type === 'ball') {
+    // Draw basketball
+    ctx.font = 'bold ' + ballSize + 'px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🏀', element.x, element.y);
+  }
     
     ctx.restore();
   }
