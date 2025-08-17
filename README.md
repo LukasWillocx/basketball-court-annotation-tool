@@ -1,7 +1,8 @@
 # basketball-court-annotation-tool
 
-This repository concerns a full self contained Basketball Court Annotation Tool in the R shiny framework, using javascript and its object notation (json) to draw and make annotations in real time.These drafts/diagrams/plays/... can be exported as .png to print and serve as a reference.
+This repository concerns a full self contained Basketball Court Annotation Tool in the R shiny framework, leveraging javascript and its object notation (json) to draw and make annotations in real time.These drafts/diagrams/plays/... can be exported as .png.
 
+## Features
 
 ### Court design
 * Half court or full court designs
