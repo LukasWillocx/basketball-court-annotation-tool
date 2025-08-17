@@ -28,4 +28,4 @@ The app is designed with the help of Claude 4.0. I am quite familiar with R and 
 
 [layout.pdf](https://github.com/user-attachments/files/21714234/layout.pdf)
 
-The app is currently available @ http://app.luwi.me.basket 
+The app is currently available @ http://app.luwi.me/basket 
