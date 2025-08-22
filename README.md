@@ -12,6 +12,7 @@ This repository concerns a full self contained Basketball Court Annotation Tool 
 ### Annotation tools
 * Player indicators (1-5)
 * crosses/triangles/circles
+* A basketball
 * straight, curved, terminated and squiggly lines in either solid or dotted configuration to identify dribbles, runs, screens and passes
 * six basic colors (yellow, red, orange, blue, green and purple)
 
