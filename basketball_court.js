@@ -6,7 +6,7 @@ $(document).ready(function() {
   }
   var ctx = canvas.getContext('2d');
   var elements = [];
-  var currentTool = 'player';
+  var currentTool = 'number';
   var currentColor = '#dc3545';
   var currentTeam = 'teamA';
   var currentNumber = 1;
@@ -27,10 +27,9 @@ $(document).ready(function() {
   // Responsive canvas sizing
   function getResponsiveCanvasSize(courtType) {
     var container = $('.canvas-container');
-    var containerWidth = container.width() - 40; // Account for padding
+    var containerWidth = container.width() - 40;
     var containerHeight = container.height() - 40;
     
-    // Base dimensions for different court types
     var baseDimensions = {
       full: { width: 1200, height: 700, courtWidth: 1000, courtHeight: 600 },
       half: { width: 800, height: 700, courtWidth: 600, courtHeight: 600 }
@@ -39,20 +38,16 @@ $(document).ready(function() {
     var base = baseDimensions[courtType];
     var aspectRatio = base.width / base.height;
     
-    // Calculate size that fits in container while maintaining aspect ratio
     var canvasWidth, canvasHeight;
     
     if (containerWidth / containerHeight > aspectRatio) {
-      // Container is wider than needed - limit by height
       canvasHeight = Math.min(containerHeight, base.height);
       canvasWidth = canvasHeight * aspectRatio;
     } else {
-      // Container is taller than needed - limit by width
       canvasWidth = Math.min(containerWidth, base.width);
       canvasHeight = canvasWidth / aspectRatio;
     }
     
-    // Ensure minimum sizes for usability
     var minWidth = 400;
     var minHeight = 300;
     
@@ -66,7 +61,6 @@ $(document).ready(function() {
       canvasWidth = canvasHeight * aspectRatio;
     }
     
-    // Calculate court size proportionally
     var scale = canvasWidth / base.width;
     var courtWidth = base.courtWidth * scale;
     var courtHeight = base.courtHeight * scale;
@@ -87,7 +81,6 @@ $(document).ready(function() {
     
     var clientX, clientY;
     
-    // Handle both mouse and touch events
     if (e.touches && e.touches.length > 0) {
       clientX = e.touches[0].clientX;
       clientY = e.touches[0].clientY;
@@ -105,21 +98,17 @@ $(document).ready(function() {
     return { x: x, y: y };
   }
   
-  // Tool selection - with debugging and highlighting
+  // Tool selection - modified to clear number selection when other tools are chosen
   $('.tool-tile').click(function() {
     $('.tool-tile').removeClass('active');
+    $('.number-tile').removeClass('active');
     $(this).addClass('active');
     currentTool = $(this).data('tool');
     console.log('Tool selected:', currentTool);
     Shiny.setInputValue('currentTool', currentTool);
     updateCursor();
     
-    // Highlight the players section when number tool is selected
-    if (currentTool === 'number') {
-      $('.players-group').addClass('highlight');
-    } else {
-      $('.players-group').removeClass('highlight');
-    }
+    $('.players-group').removeClass('highlight');
   });
   
   // Color selection
@@ -134,12 +123,18 @@ $(document).ready(function() {
     Shiny.setInputValue('currentTeam', currentTeam);
   });
   
-  // Number selection for numbers tool
+  // Number selection - now also activates the number tool automatically
   $('.number-tile').click(function() {
     $('.number-tile').removeClass('active');
+    $('.tool-tile').removeClass('active');
     $(this).addClass('active');
     currentNumber = parseInt($(this).data('number'));
-    console.log('Number selected:', currentNumber);
+    currentTool = 'number';
+    console.log('Number selected and tool activated:', currentNumber);
+    Shiny.setInputValue('currentTool', currentTool);
+    updateCursor();
+    
+    $('.players-group').addClass('highlight');
   });
   
   function updateCursor() {
@@ -183,17 +178,14 @@ $(document).ready(function() {
       courtHeight: responsiveSize.courtHeight
     };
     
-    // Set canvas internal dimensions
     canvas.width = responsiveSize.canvasWidth;
     canvas.height = responsiveSize.canvasHeight;
     
-    // Set canvas display size via CSS (this allows for responsive behavior)
     canvas.style.width = responsiveSize.canvasWidth + 'px';
     canvas.style.height = responsiveSize.canvasHeight + 'px';
     
     drawCourt(data.courtType, responsiveSize.courtWidth, responsiveSize.courtHeight);
     
-    // Re-bind event listeners after canvas is reinitialized
     setupCanvasEvents();
   });
 
@@ -202,11 +194,9 @@ $(document).ready(function() {
     if (currentCourtConfig.courtType) {
       var responsiveSize = getResponsiveCanvasSize(currentCourtConfig.courtType);
       
-      // Store the scale ratio for element repositioning
       var scaleX = responsiveSize.canvasWidth / currentCourtConfig.canvasWidth;
       var scaleY = responsiveSize.canvasHeight / currentCourtConfig.canvasHeight;
       
-      // Scale existing elements
       elements.forEach(function(element) {
         if (element.x !== undefined) {
           element.x *= scaleX;
@@ -220,13 +210,11 @@ $(document).ready(function() {
         }
       });
       
-      // Update court configuration
       currentCourtConfig.canvasWidth = responsiveSize.canvasWidth;
       currentCourtConfig.canvasHeight = responsiveSize.canvasHeight;
       currentCourtConfig.courtWidth = responsiveSize.courtWidth;
       currentCourtConfig.courtHeight = responsiveSize.courtHeight;
       
-      // Update canvas
       canvas.width = responsiveSize.canvasWidth;
       canvas.height = responsiveSize.canvasHeight;
       canvas.style.width = responsiveSize.canvasWidth + 'px';
@@ -236,7 +224,6 @@ $(document).ready(function() {
     }
   }
 
-  // Debounced resize handler
   var resizeTimeout;
   $(window).resize(function() {
     clearTimeout(resizeTimeout);
@@ -356,7 +343,6 @@ $(document).ready(function() {
     ctx.stroke();
     ctx.setLineDash([]);
     
-    // Three-point line
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
@@ -403,29 +389,24 @@ $(document).ready(function() {
   function setupCanvasEvents() {
     console.log('Setting up canvas events, canvas element:', canvas);
     
-    // Remove existing listeners first
     canvas.removeEventListener('click', handleCanvasClickWrapper);
     canvas.removeEventListener('mousedown', handleMouseDownWrapper);
     canvas.removeEventListener('mousemove', handleMouseMoveWrapper);
     canvas.removeEventListener('mouseup', handleMouseUpWrapper);
     
-    // Remove touch listeners
     canvas.removeEventListener('touchstart', handleTouchStartWrapper);
     canvas.removeEventListener('touchmove', handleTouchMoveWrapper);
     canvas.removeEventListener('touchend', handleTouchEndWrapper);
     
-    // Add mouse listeners
     canvas.addEventListener('click', handleCanvasClickWrapper);
     canvas.addEventListener('mousedown', handleMouseDownWrapper);
     canvas.addEventListener('mousemove', handleMouseMoveWrapper);
     canvas.addEventListener('mouseup', handleMouseUpWrapper);
     
-    // Add touch listeners for mobile support
     canvas.addEventListener('touchstart', handleTouchStartWrapper);
     canvas.addEventListener('touchmove', handleTouchMoveWrapper);
     canvas.addEventListener('touchend', handleTouchEndWrapper);
     
-    // Prevent default touch behaviors that interfere with drawing
     canvas.addEventListener('touchstart', function(e) { e.preventDefault(); });
     canvas.addEventListener('touchmove', function(e) { e.preventDefault(); });
     canvas.addEventListener('touchend', function(e) { e.preventDefault(); });
@@ -453,15 +434,12 @@ $(document).ready(function() {
     handleMouseUp(coords.x, coords.y);
   }
 
-  // Touch event handlers
   function handleTouchStartWrapper(e) {
     var coords = getEventCoordinates(e);
     
-    // For single-click tools, handle as click
     if(currentTool === 'cross' || currentTool === 'triangle' || currentTool === 'number' || currentTool === 'ball') {
       handleCanvasClick(coords.x, coords.y);
     } else {
-      // For drawing tools, handle as mouse down
       handleMouseDown(coords.x, coords.y);
     }
   }
@@ -505,7 +483,7 @@ $(document).ready(function() {
   
   function handleMouseMove(x, y) {
     if(drawing) {
-      var lineWidth = Math.max(2, Math.min(5, currentCourtConfig.canvasWidth / 400)); // Responsive line width
+      var lineWidth = Math.max(2, Math.min(5, currentCourtConfig.canvasWidth / 400));
       
       previewElement = {
         type: currentTool,
@@ -600,7 +578,7 @@ $(document).ready(function() {
   }
   
   function addShape(type, startX, startY, endX, endY) {
-    var lineWidth = Math.max(2, Math.min(5, currentCourtConfig.canvasWidth / 400)); // Responsive line width
+    var lineWidth = Math.max(2, Math.min(5, currentCourtConfig.canvasWidth / 400));
     
     var element = {
       type: type,
@@ -618,33 +596,28 @@ $(document).ready(function() {
   function drawElement(element) {
     ctx.save();
   
-    // Calculate responsive sizes
-    var scale = currentCourtConfig.canvasWidth / 1200; // Base scale
+    var scale = currentCourtConfig.canvasWidth / 1200;
     var playerRadius = Math.max(12, 18 * scale);
     var fontSize = Math.max(16, 24 * scale);
     var crossSize = Math.max(6, 8 * scale);
     var triangleSize = Math.max(8, 10 * scale);
-    var ballSize = Math.max(15, 20 * scale); // Add ball size
+    var ballSize = Math.max(15, 20 * scale);
     
     if(element.type === 'player') {
-      // Draw player with colored circle and number
       ctx.fillStyle = element.color;
       ctx.strokeStyle = '#000';
       ctx.lineWidth = 2;
       
-      // Draw colored background circle
       ctx.beginPath();
       ctx.arc(element.x, element.y, playerRadius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.stroke();
       
-      // Draw the number in white
       ctx.fillStyle = '#fff';
       ctx.font = 'bold ' + fontSize + 'px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      // Add text shadow for better visibility
       ctx.shadowColor = '#000';
       ctx.shadowBlur = 1;
       ctx.shadowOffsetX = 1;
@@ -652,7 +625,6 @@ $(document).ready(function() {
       
       ctx.fillText(element.number.toString(), element.x, element.y);
       
-      // Reset shadow
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
@@ -668,15 +640,12 @@ $(document).ready(function() {
       ctx.stroke();
     } else if(element.type === 'triangle') {
       ctx.fillStyle = element.color;
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(element.x, element.y - triangleSize);
       ctx.lineTo(element.x - triangleSize, element.y + triangleSize);
       ctx.lineTo(element.x + triangleSize, element.y + triangleSize);
       ctx.closePath();
       ctx.fill();
-      ctx.stroke();
     } else if(element.type === 'arrow') {
       ctx.strokeStyle = element.color;
       ctx.lineWidth = element.lineWidth;
@@ -747,30 +716,33 @@ $(document).ready(function() {
       ctx.arc(element.startX, element.startY, radius, 0, 2 * Math.PI);
       ctx.stroke();
     } else if(element.type === 'number') {
-      // Draw number with background circle for visibility
-      ctx.fillStyle = '#fff';
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 2;
-      
-      // Draw white background circle
+      ctx.fillStyle = element.color;
       ctx.beginPath();
       ctx.arc(element.x, element.y, playerRadius, 0, 2 * Math.PI);
       ctx.fill();
-      ctx.stroke();
       
-      // Draw the number
-      ctx.fillStyle = element.color;
+      ctx.fillStyle = '#fff';
       ctx.font = 'bold ' + fontSize + 'px Arial';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(element.number.toString(), element.x, element.y);
+      
+      ctx.shadowColor = '#000';
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      ctx.fillText(element.number.toString(), element.x, element.y + 1);
+      
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
     } else if(element.type === 'ball') {
-    // Draw basketball
-    ctx.font = 'bold ' + ballSize + 'px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🏀', element.x, element.y);
-  }
+      ctx.font = 'bold ' + ballSize + 'px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🏀', element.x, element.y);
+    }
     
     ctx.restore();
   }
@@ -794,23 +766,19 @@ $(document).ready(function() {
   }
   
   function drawLineWithStop(fromX, fromY, toX, toY) {
-    // Draw the main line
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
     ctx.lineTo(toX, toY);
     ctx.stroke();
     
-    // Calculate line angle and perpendicular angle
     var dx = toX - fromX;
     var dy = toY - fromY;
     var angle = Math.atan2(dy, dx);
     var perpAngle = angle + Math.PI / 2;
     
-    // Length of the perpendicular stop line (responsive)
     var scale = currentCourtConfig.canvasWidth / 1200;
     var stopLength = Math.max(16, 22 * scale);
     
-    // Draw perpendicular stop only at the END point
     ctx.beginPath();
     ctx.moveTo(toX - Math.cos(perpAngle) * stopLength / 2, toY - Math.sin(perpAngle) * stopLength / 2);
     ctx.lineTo(toX + Math.cos(perpAngle) * stopLength / 2, toY + Math.sin(perpAngle) * stopLength / 2);
@@ -818,13 +786,11 @@ $(document).ready(function() {
   }
   
   function drawSquigglyArrow(fromX, fromY, toX, toY) {
-    // Calculate the line length and direction
     var dx = toX - fromX;
     var dy = toY - fromY;
     var length = Math.sqrt(dx * dx + dy * dy);
     var angle = Math.atan2(dy, dx);
     
-    // Create responsive squiggly line
     var scale = currentCourtConfig.canvasWidth / 1200;
     var wavelength = Math.max(20, 25 * scale);
     var amplitude = Math.max(6, 8 * scale);
@@ -833,20 +799,16 @@ $(document).ready(function() {
     ctx.beginPath();
     ctx.moveTo(fromX, fromY);
     
-    // Draw squiggly line using sine wave
     for(var i = 0; i <= numWaves * 10; i++) {
       var progress = i / (numWaves * 10);
       if(progress > 1) progress = 1;
       
-      // Position along the straight line
       var straightX = fromX + dx * progress;
       var straightY = fromY + dy * progress;
       
-      // Add perpendicular sine wave offset
       var wavePhase = progress * numWaves * Math.PI * 2;
       var waveOffset = Math.sin(wavePhase) * amplitude;
       
-      // Calculate perpendicular direction
       var perpX = -Math.sin(angle) * waveOffset;
       var perpY = Math.cos(angle) * waveOffset;
       
@@ -878,7 +840,6 @@ $(document).ready(function() {
     ctx.stroke();
   }
   
-  // Message handlers
   Shiny.addCustomMessageHandler('clearCourt', function(data) {
     elements = [];
     redrawAll();
@@ -936,13 +897,13 @@ $(document).ready(function() {
     }
   });
   
-  // Initialize
-  $('.tool-tile[data-tool="number"]').addClass('active');
-  $('.color-tile[data-color="#dc3545"]').addClass('active');
   $('.number-tile[data-number="1"]').addClass('active');
+  $('.color-tile[data-color="#dc3545"]').addClass('active');
+  currentTool = 'number';
+  currentNumber = 1;
+  $('.players-group').addClass('highlight');
   updateCursor();
   
-  // Set up canvas events initially with a delay to ensure DOM is ready
   setTimeout(function() {
     setupCanvasEvents();
   }, 100);
