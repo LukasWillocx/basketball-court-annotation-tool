@@ -33,17 +33,14 @@ canvasServer <- function(id, main_input, main_session) {
       main_session$sendCustomMessage("undoLast", list())
     })
     
-    # Save diagram as PNG or PDF
+    # Save diagram as PNG
     observeEvent(input$saveDiagram, {
       showModal(modalDialog(
         title = "Export Diagram",
-        radioButtons(session$ns("exportFormat"), "Choose export format:",
-                     choices = list("PNG Image" = "png", "PDF Document" = "pdf"),
-                     selected = "png"),
         textInput(session$ns("exportFilename"), "Filename:", 
                   value = paste0("basketball_play_", Sys.Date())),
         footer = tagList(
-          actionButton(session$ns("confirmExport"), "Export", class = "btn-primary"),
+          actionButton(session$ns("confirmExport"), "Export as PNG", class = "btn-primary"),
           modalButton("Cancel")
         )
       ))
@@ -52,20 +49,20 @@ canvasServer <- function(id, main_input, main_session) {
     # Handle export confirmation
     observeEvent(input$confirmExport, {
       main_session$sendCustomMessage("exportCanvas", list(
-        format = input$exportFormat,
+        format = "png",
         filename = input$exportFilename
       ))
       removeModal()
-      showNotification("Diagram exported successfully!", duration = 3000)
+      showNotification("Diagram exported as PNG!", duration = 3000)
     })
     
-    # Update status based on current tool (enhanced with numbers tool)
+    # Update status based on current tool (simplified)
     observeEvent(main_input$currentTool, {
       tool_messages <- list(
-        "player" = "Click on court to place players (you'll be prompted for number 1-5)",
         "cross" = "Click on court to place crosses",
         "triangle" = "Click on court to place triangles", 
-        "number" = "Select a number (1-5) then click on court to place it",
+        "number" = "Click on court to place the selected player number",
+        "ball" = "Click on court to place basketball",
         "arrow" = "Click and drag to draw solid arrows",
         "dotted-arrow" = "Click and drag to draw dotted arrows",
         "squiggly-arrow" = "Click and drag to draw squiggly arrows",
@@ -80,7 +77,7 @@ canvasServer <- function(id, main_input, main_session) {
       )
       
       message <- if(is.null(tool_messages[[main_input$currentTool]])) {
-        "Select a tool"
+        "Select a tool or player number"
       } else {
         tool_messages[[main_input$currentTool]]
       }
