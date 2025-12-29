@@ -3,7 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-x: hidden;
 }
 
 .main-container {
@@ -12,7 +12,6 @@ body {
   overflow: hidden;
 }
 
-/* Responsive adjustments for smaller screens */
 @media (max-width: 768px) {
   .main-container {
     flex-direction: column;
@@ -27,10 +26,9 @@ body {
   padding: 15px;
   overflow-y: auto;
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  flex-shrink: 0; /* Prevent toolbar from shrinking */
+  flex-shrink: 0;
 }
 
-/* Responsive toolbar for mobile */
 @media (max-width: 768px) {
   .toolbar {
     width: 100%;
@@ -58,7 +56,7 @@ body {
   flex-direction: column;
   background: #ffffff;
   overflow: hidden;
-  min-width: 0; /* Allow flex item to shrink below content size */
+  min-width: 0;
 }
 
 .top-controls {
@@ -69,11 +67,10 @@ body {
   align-items: center;
   gap: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  flex-wrap: wrap; /* Allow wrapping on smaller screens */
+  flex-wrap: wrap;
   flex-shrink: 0;
 }
 
-/* Responsive controls */
 @media (max-width: 768px) {
   .top-controls {
     padding: 8px 10px;
@@ -94,7 +91,7 @@ body {
   }
   
   .court-controls {
-    order: -1; /* Move court type selector to top */
+    order: -1;
   }
 }
 
@@ -106,10 +103,9 @@ body {
   padding: 20px;
   overflow: auto;
   background: #f8f9fa;
-  min-height: 0; /* Allow container to shrink */
+  min-height: 0;
 }
 
-/* Responsive canvas container */
 @media (max-width: 768px) {
   .canvas-container {
     padding: 10px;
@@ -132,11 +128,10 @@ body {
   max-height: 100%;
   width: auto;
   height: auto;
-  display: block; /* Ensure proper display */
-  touch-action: none; /* Prevent touch scrolling/zooming on canvas */
+  display: block;
+  touch-action: none;
 }
 
-/* Responsive canvas adjustments */
 @media (max-width: 768px) {
   #courtCanvas {
     border: 2px solid #333;
@@ -150,15 +145,14 @@ body {
 }
 
 .tool-group {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   background: white;
   border-radius: 8px;
-  padding: 15px;
+  padding: 12px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: all 0.3s ease;
 }
 
-/* Responsive tool groups */
 @media (max-width: 768px) {
   .tool-group {
     margin-bottom: 10px;
@@ -167,13 +161,14 @@ body {
 }
 
 .tool-group h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   font-size: 14px;
   font-weight: 600;
   color: #495057;
   text-transform: uppercase;
   border-bottom: 1px solid #e9ecef;
   padding-bottom: 5px;
+  text-align: center;
 }
 
 .tool-group h5 {
@@ -183,17 +178,12 @@ body {
   color: #6c757d;
 }
 
-/* Highlight the players tool group when number tool is active */
-.tool-group.players-group.highlight {
-  border: 3px solid #007bff;
-  background: #f8f9ff;
-  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
-  transform: translateY(-2px);
-}
-
 .tool-group.players-group.highlight h4 {
   color: #007bff;
-  border-bottom-color: #007bff;
+}
+
+.tool-group > div {
+  text-align: center;
 }
 
 .tool-tile {
@@ -209,10 +199,9 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  touch-action: manipulation; /* Improve touch responsiveness */
+  touch-action: manipulation;
 }
 
-/* Responsive tool tiles */
 @media (max-width: 768px) {
   .tool-tile {
     width: 35px;
@@ -237,7 +226,6 @@ body {
   transform: translateY(-1px);
 }
 
-/* Remove hover effects on touch devices to prevent sticking */
 @media (hover: none) {
   .tool-tile:hover {
     transform: none;
@@ -269,7 +257,6 @@ body {
   touch-action: manipulation;
 }
 
-/* Responsive number tiles */
 @media (max-width: 768px) {
   .number-tile {
     width: 28px;
@@ -293,7 +280,6 @@ body {
   transform: scale(1.1);
 }
 
-/* Remove hover effects on touch devices */
 @media (hover: none) {
   .number-tile:hover {
     transform: none;
@@ -305,34 +291,6 @@ body {
   background: #007bff;
   color: white;
   box-shadow: 0 2px 4px rgba(0,123,255,0.3);
-}
-
-/* Enhanced styling for number tiles when number tool is active */
-.tool-group.players-group.highlight .number-tile {
-  border-color: #007bff;
-  background: #f8f9ff;
-  animation: pulse 2s infinite;
-}
-
-.tool-group.players-group.highlight .number-tile.active {
-  background: #007bff;
-  color: white;
-  animation: none;
-}
-
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
 }
 
 .color-tile {
@@ -347,7 +305,6 @@ body {
   touch-action: manipulation;
 }
 
-/* Responsive color tiles */
 @media (max-width: 768px) {
   .color-tile {
     width: 28px;
@@ -368,7 +325,6 @@ body {
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Remove hover effects on touch devices */
 @media (hover: none) {
   .color-tile:hover {
     transform: none;
@@ -391,7 +347,6 @@ body {
   min-width: 120px;
 }
 
-/* Responsive court controls */
 @media (max-width: 768px) {
   .court-controls select {
     padding: 6px 10px;
@@ -446,7 +401,6 @@ body {
   background: #218838;
 }
 
-/* Remove button hover effects on touch devices */
 @media (hover: none) {
   .btn-clear:hover {
     background: #ffc107;
@@ -475,7 +429,6 @@ body {
   border-radius: 4px;
 }
 
-/* Responsive line width control */
 @media (max-width: 480px) {
   .line-width-control {
     gap: 5px;
@@ -498,7 +451,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Responsive status bar */
 @media (max-width: 768px) {
   .status-bar {
     padding: 6px 10px;
@@ -516,7 +468,6 @@ body {
   }
 }
 
-/* Prevent text selection on interactive elements */
 .tool-tile, .number-tile, .color-tile, .action-button {
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -524,12 +475,10 @@ body {
   user-select: none;
 }
 
-/* Improve scrolling on mobile */
 .toolbar {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Ensure canvas area takes remaining space properly on mobile */
 @media (max-width: 768px) {
   .canvas-area {
     flex: 1;
