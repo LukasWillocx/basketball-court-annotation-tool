@@ -14,6 +14,9 @@ $(document).ready(function() {
   var startX = 0;
   var startY = 0;
   var previewElement = null;
+  var selectedElement = null;
+  var hoveredElement = null;
+  var isDragging = false;
   
   // Store current court configuration with responsive sizing
   var currentCourtConfig = {
@@ -106,7 +109,14 @@ $(document).ready(function() {
     currentTool = $(this).data('tool');
     console.log('Tool selected:', currentTool);
     Shiny.setInputValue('currentTool', currentTool);
+    
+    // Reset state when switching tools
+    hoveredElement = null;
+    selectedElement = null;
+    isDragging = false;
+    redrawAll();
     updateCursor();
+    updateToolColor();
     
     $('.players-group').removeClass('highlight');
   });
@@ -121,6 +131,7 @@ $(document).ready(function() {
     }
     Shiny.setInputValue('currentColor', currentColor);
     Shiny.setInputValue('currentTeam', currentTeam);
+    updateToolColor();
   });
   
   // Number selection - now also activates the number tool automatically
@@ -133,9 +144,24 @@ $(document).ready(function() {
     console.log('Number selected and tool activated:', currentNumber);
     Shiny.setInputValue('currentTool', currentTool);
     updateCursor();
+    updateToolColor();
     
     $('.players-group').addClass('highlight');
   });
+  
+  function updateToolColor() {
+    // Remove inline styles from ALL tools and numbers (not just active ones)
+    $('.tool-tile, .number-tile').css('background-color', '');
+    $('.tool-tile, .number-tile').css('border-color', '');
+    
+    // Apply color only to the currently active tool (except delete and move which stay red/green)
+    if (currentTool !== 'delete' && currentTool !== 'move') {
+      $('.tool-tile.active, .number-tile.active').css({
+        'background-color': currentColor,
+        'border-color': currentColor
+      });
+    }
+  }
   
   function updateCursor() {
     switch(currentTool) {
@@ -145,6 +171,12 @@ $(document).ready(function() {
       case 'number':
       case 'ball':
         canvas.style.cursor = 'pointer';
+        break;
+      case 'delete':
+        canvas.style.cursor = 'not-allowed';
+        break;
+      case 'move':
+        canvas.style.cursor = isDragging ? 'grabbing' : 'grab';
         break;
       case 'arrow':
       case 'line':
@@ -164,6 +196,56 @@ $(document).ready(function() {
       default:
         canvas.style.cursor = 'crosshair';
     }
+  }
+  
+  // Hit testing to find element at coordinates
+  function findElementAtPoint(x, y) {
+    var scale = currentCourtConfig.canvasWidth / 1200;
+    var hitRadius = Math.max(20, 25 * scale);
+    
+    // Search from end to start (top elements first)
+    for (var i = elements.length - 1; i >= 0; i--) {
+      var element = elements[i];
+      
+      // Point elements (player, cross, triangle, number, ball)
+      if (element.x !== undefined && element.y !== undefined) {
+        var dx = x - element.x;
+        var dy = y - element.y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance <= hitRadius) {
+          return i;
+        }
+      }
+      
+      // Line/arrow/curve elements
+      if (element.startX !== undefined && element.endX !== undefined) {
+        var distToLine = distanceToLineSegment(x, y, element.startX, element.startY, element.endX, element.endY);
+        
+        if (distToLine <= hitRadius) {
+          return i;
+        }
+      }
+    }
+    
+    return -1;
+  }
+  
+  // Calculate distance from point to line segment
+  function distanceToLineSegment(px, py, x1, y1, x2, y2) {
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var lengthSquared = dx * dx + dy * dy;
+    
+    if (lengthSquared === 0) {
+      return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
+    }
+    
+    var t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSquared));
+    var projX = x1 + t * dx;
+    var projY = y1 + t * dy;
+    
+    return Math.sqrt((px - projX) * (px - projX) + (py - projY) * (py - projY));
   }
   
   // Initialize court with responsive sizing
@@ -437,7 +519,7 @@ $(document).ready(function() {
   function handleTouchStartWrapper(e) {
     var coords = getEventCoordinates(e);
     
-    if(currentTool === 'cross' || currentTool === 'triangle' || currentTool === 'number' || currentTool === 'ball') {
+    if(currentTool === 'cross' || currentTool === 'triangle' || currentTool === 'number' || currentTool === 'ball' || currentTool === 'delete') {
       handleCanvasClick(coords.x, coords.y);
     } else {
       handleMouseDown(coords.x, coords.y);
@@ -457,7 +539,13 @@ $(document).ready(function() {
   function handleCanvasClick(x, y) {
     console.log('handleCanvasClick called with:', x, y, 'currentTool:', currentTool);
     
-    if(currentTool === 'cross') {
+    if(currentTool === 'delete') {
+      var elementIndex = findElementAtPoint(x, y);
+      if (elementIndex !== -1) {
+        elements.splice(elementIndex, 1);
+        redrawAll();
+      }
+    } else if(currentTool === 'cross') {
       addCross(x, y);
     } else if(currentTool === 'triangle') {
       addTriangle(x, y);
@@ -471,7 +559,16 @@ $(document).ready(function() {
   }
   
   function handleMouseDown(x, y) {
-    if(currentTool === 'arrow' || currentTool === 'line' || currentTool === 'circle' || 
+    if(currentTool === 'move') {
+      var elementIndex = findElementAtPoint(x, y);
+      if (elementIndex !== -1) {
+        selectedElement = elementIndex;
+        isDragging = true;
+        startX = x;
+        startY = y;
+        updateCursor();
+      }
+    } else if(currentTool === 'arrow' || currentTool === 'line' || currentTool === 'circle' || 
        currentTool === 'dotted-line' || currentTool === 'dotted-arrow' || currentTool === 'curve' ||
        currentTool === 'dotted-curve' || currentTool === 'line-with-stops' || currentTool === 'dotted-line-with-stops' ||
        currentTool === 'squiggly-arrow' || currentTool === 'dotted-squiggly-arrow') {
@@ -482,7 +579,37 @@ $(document).ready(function() {
   }
   
   function handleMouseMove(x, y) {
-    if(drawing) {
+    if(currentTool === 'move' && isDragging && selectedElement !== null) {
+      var dx = x - startX;
+      var dy = y - startY;
+      
+      var element = elements[selectedElement];
+      
+      // Move point elements
+      if (element.x !== undefined && element.y !== undefined) {
+        element.x += dx;
+        element.y += dy;
+      }
+      
+      // Move line/arrow/curve elements
+      if (element.startX !== undefined && element.endX !== undefined) {
+        element.startX += dx;
+        element.startY += dy;
+        element.endX += dx;
+        element.endY += dy;
+      }
+      
+      startX = x;
+      startY = y;
+      redrawAll();
+    } else if(currentTool === 'delete' || currentTool === 'move') {
+      // Highlight element under cursor
+      var elementIndex = findElementAtPoint(x, y);
+      if (elementIndex !== hoveredElement) {
+        hoveredElement = elementIndex;
+        redrawAll();
+      }
+    } else if(drawing) {
       var lineWidth = Math.max(2, Math.min(5, currentCourtConfig.canvasWidth / 400));
       
       previewElement = {
@@ -501,7 +628,12 @@ $(document).ready(function() {
   }
   
   function handleMouseUp(x, y) {
-    if(drawing && (currentTool === 'arrow' || currentTool === 'line' || currentTool === 'circle' ||
+    if(currentTool === 'move' && isDragging) {
+      isDragging = false;
+      selectedElement = null;
+      updateCursor();
+      redrawAll();
+    } else if(drawing && (currentTool === 'arrow' || currentTool === 'line' || currentTool === 'circle' ||
                    currentTool === 'dotted-line' || currentTool === 'dotted-arrow' || currentTool === 'curve' ||
                    currentTool === 'dotted-curve' || currentTool === 'line-with-stops' || currentTool === 'dotted-line-with-stops' ||
                    currentTool === 'squiggly-arrow' || currentTool === 'dotted-squiggly-arrow')) {
@@ -602,6 +734,27 @@ $(document).ready(function() {
     var crossSize = Math.max(6, 8 * scale);
     var triangleSize = Math.max(8, 10 * scale);
     var ballSize = Math.max(15, 20 * scale);
+    
+    // Draw highlight for hovered element
+    var isHovered = (hoveredElement !== null && elements[hoveredElement] === element);
+    if (isHovered && (currentTool === 'delete' || currentTool === 'move')) {
+      ctx.strokeStyle = currentTool === 'delete' ? '#dc3545' : '#28a745';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 5]);
+      
+      if (element.x !== undefined && element.y !== undefined) {
+        ctx.beginPath();
+        ctx.arc(element.x, element.y, playerRadius + 5, 0, 2 * Math.PI);
+        ctx.stroke();
+      } else if (element.startX !== undefined && element.endX !== undefined) {
+        ctx.beginPath();
+        ctx.moveTo(element.startX, element.startY);
+        ctx.lineTo(element.endX, element.endY);
+        ctx.stroke();
+      }
+      
+      ctx.setLineDash([]);
+    }
     
     if(element.type === 'player') {
       ctx.fillStyle = element.color;
@@ -842,6 +995,8 @@ $(document).ready(function() {
   
   Shiny.addCustomMessageHandler('clearCourt', function(data) {
     elements = [];
+    hoveredElement = null;
+    selectedElement = null;
     redrawAll();
   });
   
@@ -903,6 +1058,7 @@ $(document).ready(function() {
   currentNumber = 1;
   $('.players-group').addClass('highlight');
   updateCursor();
+  updateToolColor();
   
   setTimeout(function() {
     setupCanvasEvents();

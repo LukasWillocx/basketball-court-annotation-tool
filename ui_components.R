@@ -31,7 +31,15 @@ toolbarUI <- function(id) {
             div(class = "tool-tile", `data-tool` = "circle", title = "Draw Circle", "O")
           ),
       ),
-
+      
+      div(class = "tool-group",
+          h4("Edit Tools"),
+          div(
+            div(class = "tool-tile", `data-tool` = "delete", title = "Delete Element", "⌫"),
+            div(class = "tool-tile", `data-tool` = "move", title = "Move Element", "⇄")
+          ),
+      ),
+      
       div(class = "tool-group",
           h4("Place Players"),
           div(style = "margin-top: 10px;",

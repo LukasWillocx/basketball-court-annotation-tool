@@ -59,6 +59,8 @@ canvasServer <- function(id, main_input, main_session) {
     # Update status based on current tool (simplified)
     observeEvent(main_input$currentTool, {
       tool_messages <- list(
+        "delete" = "Click on any element to delete it",
+        "move" = "Click and drag any element to move it",
         "cross" = "Click on court to place crosses",
         "triangle" = "Click on court to place triangles", 
         "number" = "Click on court to place the selected player number",

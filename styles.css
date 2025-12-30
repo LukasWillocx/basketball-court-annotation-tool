@@ -239,6 +239,18 @@ body {
   box-shadow: 0 2px 4px rgba(0,123,255,0.3);
 }
 
+.tool-tile[data-tool="delete"].active {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+  box-shadow: 0 2px 4px rgba(220,53,69,0.3);
+}
+
+.tool-tile[data-tool="move"].active {
+  background: #28a745 !important;
+  border-color: #28a745 !important;
+  box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+}
+
 .number-tile {
   width: 30px;
   height: 30px;
